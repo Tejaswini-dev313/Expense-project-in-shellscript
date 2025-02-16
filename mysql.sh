@@ -33,16 +33,8 @@ echo "Script started executing at: $(date)" | tee -a $LOG_FILE
 
 CHECK_ROOT
 
-dnf list installed mysql | tee -a $LOG_FILE
-
-if [ $? -ne 0 ]
-then
-    echo "MySQL is not installed...going to install" | tee -a $LOG_FILE
-    dnf install mysql-server -y
-    VALIDATE $? "Installing MySQL"
-else
-    echo "MySQL is already installed..nothing to do" | tee -a $LOG_FILE
-fi
+dnf install mysql-server -y
+VALIDATE $? "Installing mysql server"
 
 systemctl enable mysqld | tee -a $LOG_FILE
 VALIDATE $? "Enabled mysql server"
