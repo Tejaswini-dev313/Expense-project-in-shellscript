@@ -10,6 +10,7 @@ USERID=$(id -u)
 R="\e[31m"
 G="\e[32m"
 N="\e[0m"
+Y="\e[33m"
 
 CHECK_ROOT(){
     if [ $USERID -ne 0 ]
@@ -42,5 +43,12 @@ VALIDATE $? "Enabled mysql server"
 systemctl start mysqld | tee -a $LOG_FILE
 VALIDATE $? "Started mysql server"
 
-mysql_secure_installation --set-root-pass ExpenseApp@1 | tee -a $LOG_FILE
-VALIDATE $? "Setting up the password"
+mysql -h 34.239.143.6 -u root -pExpenseApp@1 -e 'show databases;' | tee -a $LOG_FILE
+if [ $? -ne 0 ]
+then
+    echo "Mysql root password is not setup, setting now" | tee -a $LOG_FILE
+    mysql_secure_installation --set-root-pass ExpenseApp@1 | tee -a $LOG_FILE
+    VALIDATE $? "Setting up the root password"
+else
+    echo -e "Mysql root password is already setup...$Y SKIPPING $N" | tee -a $LOG_FILE
+fi
