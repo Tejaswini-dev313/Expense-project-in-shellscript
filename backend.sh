@@ -43,4 +43,43 @@ VALIDATE $? "Enable nodejs"
 dnf install nodejs -y | tee -a $LOG_FILE
 VALIDATE $? "Install nodejs"
 
-id expense 
+id expense | tee -a $LOG_FILE
+if [ $? -ne 0 ]
+then
+    echo -e "expense user not exist...$G creating $N"
+    useradd expense | tee -a $LOG_FILE
+    VALIDATE $? "Creating expense user"
+else
+    echo -e "expense user already exists..$Y SKIPPING $N"
+fi
+
+mkdir -p /app
+VALIDATE $? "Creating app folder"
+
+curl -o /tmp/backend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip | tee -a $LOG_FILE
+VALIDATE $? "Downloading backend application code"
+
+cd /app
+rm -rf /app/* # remove the existing code
+unzip /tmp/backend.zip &>>$LOG_FILE
+VALIDATE $? "Extracting backend application code"
+
+npm install &>>$LOG_FILE
+cp /home/ec2-user/Expense-project-in-shellscript /etc/systemd/system/backend.service
+
+# load the data before running backend
+
+dnf install mysql -y &>>$LOG_FILE
+VALIDATE $? "installing mysql client"
+
+mysql -h 3.86.48.228 -uroot -pExpenseApp@1 < /app/schema/backend.sql 
+VALIDATE $? "Schema loading"
+
+systemctl daemon-reload &>>$LOG_FILE
+VALIDATE $? "Daemon reload"
+
+systemctl enable backend &>>$LOG_FILE
+VALIDATE $? "Enabled backend"
+
+systemctl restart backend &>>$LOG_FILE
+VALIDATE $? "Restarted backend"
