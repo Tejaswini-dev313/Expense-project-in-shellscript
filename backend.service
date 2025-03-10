@@ -5,7 +5,7 @@ Description = Backend Service
 
 [Service]
 User=expense
-Environment=DB_HOST="3.86.48.228"
+Environment=DB_HOST="backend.tejudevops.shop"
 ExecStart=/bin/node /app/index.js
 SyslogIdentifier=backend
 
